@@ -1,18 +1,12 @@
-import { Navbar } from "./_components/navbar"
+import { Navbar } from "./_components/navbar";
 
- 
- 
-const ProtectedLayout = ({children}: {children: React.ReactNode}) =>{
+const ProtectedLayout = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <div>
+      <Navbar />
+      {children}
+    </div>
+  );
+};
 
-
-    return ( 
-        <div>
-            <Navbar />
-            {children}
-        </div>
-    )
-
-}
-
-
-export default ProtectedLayout
+export default ProtectedLayout;
