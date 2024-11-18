@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -7,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import Link from "next/link";
 
 const requests = [
   { id: 1, type: "PICKUP", status: "PENDING", date: "2023-06-01" },
@@ -18,7 +20,14 @@ const requests = [
 export const Reports = () => {
   return (
     <div>
-      <h2 className="text-2xl font-semibold mb-4">Your Requests</h2>
+      <div className=" flex justify-between items-start py-4 ">
+        <h2 className="text-2xl font-semibold mb-4">Your Requests</h2>
+        <Button variant="outline" asChild>
+          <Link href={"/user/request"} className="text-green-500">
+            Create Request
+          </Link>
+        </Button>
+      </div>
       <Table>
         <TableCaption>A list of your recent requests.</TableCaption>
         <TableHeader>

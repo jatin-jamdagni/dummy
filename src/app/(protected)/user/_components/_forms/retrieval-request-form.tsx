@@ -2,7 +2,6 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,25 +22,15 @@ import {
 } from "@/components/ui/select";
 import { DateTimePicker } from "@/components/date-picker";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-
-const retrievalSchema = z.object({
-  date: z.date(),
-  time: z.string(),
-  contactPerson: z.string().min(2, "Contact person is required"),
-  fileType: z.enum(["BOX", "FILE", "OTHER"]),
-  retrievalMethod: z.enum(["DELIVERY", "PICKUP"]),
-  itemIdentifier: z.string().min(1, "Item identifier is required"),
-  remarks: z.string().optional(),
-});
-
-type RetrievalFormValues = z.infer<typeof retrievalSchema>;
+import { RetrievalFormValues, retrievalSchema } from "@/schemas";
+import { CustomPhoneInput } from "@/components/ui/phone-input";
 
 export const RetrievalRequestForm = () => {
   const form = useForm<RetrievalFormValues>({
     resolver: zodResolver(retrievalSchema),
     defaultValues: {
       date: new Date(),
-      time: "",
+      contactNo: "",
       contactPerson: "",
       fileType: "FILE",
       retrievalMethod: "DELIVERY",
@@ -82,23 +71,7 @@ export const RetrievalRequestForm = () => {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="time"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Retrieval Time</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="time"
-                        {...field}
-                        className="w-full md:w-40"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
               <FormField
                 control={form.control}
                 name="contactPerson"
@@ -106,7 +79,20 @@ export const RetrievalRequestForm = () => {
                   <FormItem>
                     <FormLabel>Contact Person</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input placeholder="Contact person" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="contactNo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contact No</FormLabel>
+                    <FormControl>
+                      <CustomPhoneInput {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -119,12 +105,13 @@ export const RetrievalRequestForm = () => {
                   <FormItem>
                     <FormLabel>Item Identifier</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input placeholder="Item Identifier" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="fileType"

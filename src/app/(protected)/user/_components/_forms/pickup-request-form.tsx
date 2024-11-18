@@ -1,8 +1,10 @@
 "use client";
 
+import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,27 +18,16 @@ import {
 } from "@/components/ui/form";
 import { DateTimePicker } from "@/components/date-picker";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-
-const pickupSchema = z.object({
-  date: z.date(),
-  contactNo: z
-    .number()
-    .min(10, "Contact person is required")
-    .max(10, "Contact person is required"),
-  contactPerson: z.string().min(2, "Contact person is required"),
-  address: z.string().min(5, "Address is required"),
-  itemCount: z.number().min(1, "At least one item is required"),
-  remarks: z.string().optional(),
-});
-
-type PickupFormValues = z.infer<typeof pickupSchema>;
+import { cn } from "@/lib/utils";
+import { PickupFormValues, pickupSchema } from "@/schemas";
+import { CustomPhoneInput } from "@/components/ui/phone-input";
 
 export const PickupRequestForm = () => {
   const form = useForm<PickupFormValues>({
     resolver: zodResolver(pickupSchema),
     defaultValues: {
       date: new Date(),
-      contactNo: 0,
+      contactNo: "",
       contactPerson: "",
       address: "",
       itemCount: 1,
@@ -69,8 +60,22 @@ export const PickupRequestForm = () => {
                     <FormControl>
                       <DateTimePicker
                         date={field.value}
-                        onDateChange={(newDate) => field.onChange(newDate)}
+                        onDateChange={field.onChange}
                       />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="contactPerson"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contact Person</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Contact person" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -81,22 +86,9 @@ export const PickupRequestForm = () => {
                 name="contactNo"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Pickup Time</FormLabel>
+                    <FormLabel>Contact No</FormLabel>
                     <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="contactPerson"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contact Person</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
+                      <CustomPhoneInput {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -111,10 +103,19 @@ export const PickupRequestForm = () => {
                     <FormControl>
                       <Input
                         type="number"
+                        min={1}
                         {...field}
-                        onChange={(e) =>
-                          field.onChange(parseInt(e.target.value))
-                        }
+                        onChange={(e) => {
+                          const value = e.target.value
+                            ? parseInt(e.target.value, 10)
+                            : undefined;
+                          field.onChange(value);
+                        }}
+                        onBlur={() => {
+                          if (!field.value) {
+                            field.onChange(1);
+                          }
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -129,7 +130,7 @@ export const PickupRequestForm = () => {
                 <FormItem>
                   <FormLabel>Pickup Address</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input placeholder="Address" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -142,7 +143,7 @@ export const PickupRequestForm = () => {
                 <FormItem>
                   <FormLabel>Remarks</FormLabel>
                   <FormControl>
-                    <Textarea {...field} rows={3} />
+                    <Textarea placeholder="Remarks" {...field} rows={3} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

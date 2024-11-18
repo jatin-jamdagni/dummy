@@ -6,7 +6,6 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -24,44 +23,33 @@ import {
 } from "@/components/ui/select";
 import { DateTimePicker } from "@/components/date-picker";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { ScanningFormValues, scanningSchema } from "@/schemas";
+import { CustomPhoneInput } from "@/components/ui/phone-input";
 
-const shredSchema = z.object({
-  date: z.date(),
-  time: z.string(),
-  contactPerson: z.string().min(2, "Contact person is required"),
-  shredLocation: z.enum(["ON_SITE", "OFF_SITE"]),
-  itemCount: z.number().min(1, "At least one item is required"),
-  itemType: z.enum(["PAPER", "HARD_DRIVE", "OTHER"]),
-  certificateRequired: z.boolean(),
-  remarks: z.string().optional(),
-});
-
-type ShredFormValues = z.infer<typeof shredSchema>;
-
-export const ShredRequestForm = () => {
-  const form = useForm<ShredFormValues>({
-    resolver: zodResolver(shredSchema),
+export const ScanningRequestForm = () => {
+  const form = useForm<ScanningFormValues>({
+    resolver: zodResolver(scanningSchema),
     defaultValues: {
       date: new Date(),
-      time: "",
+      contactNo: "",
       contactPerson: "",
-      shredLocation: "OFF_SITE",
-      itemCount: 1,
-      itemType: "PAPER",
-      certificateRequired: false,
+      documentType: "PAPER",
+      pageCount: 1,
+      scanResolution: "MEDIUM",
       remarks: "",
     },
   });
 
-  function onSubmit(data: ShredFormValues) {
+  function onSubmit(data: ScanningFormValues) {
     console.log(data);
-    // Here you would typically send the data to your backend
   }
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold">Shred Request Form</CardTitle>
+        <CardTitle className="text-2xl font-bold">
+          Scanning Request Form
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -72,7 +60,7 @@ export const ShredRequestForm = () => {
                 name="date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Shredding Date</FormLabel>
+                    <FormLabel>Scanning Date</FormLabel>
                     <FormControl>
                       <DateTimePicker
                         date={field.value}
@@ -83,23 +71,7 @@ export const ShredRequestForm = () => {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="time"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Shredding Time</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="time"
-                        {...field}
-                        className="w-full md:w-40"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
               <FormField
                 control={form.control}
                 name="contactPerson"
@@ -107,7 +79,7 @@ export const ShredRequestForm = () => {
                   <FormItem>
                     <FormLabel>Contact Person</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input placeholder="Contact person" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -115,17 +87,39 @@ export const ShredRequestForm = () => {
               />
               <FormField
                 control={form.control}
-                name="itemCount"
+                name="contactNo"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Number of Items</FormLabel>
+                    <FormLabel>Contact Person</FormLabel>
+                    <FormControl>
+                      <CustomPhoneInput {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="pageCount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Number of Pages</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
+                        min={1}
                         {...field}
-                        onChange={(e) =>
-                          field.onChange(parseInt(e.target.value))
-                        }
+                        onChange={(e) => {
+                          const value = e.target.value
+                            ? parseInt(e.target.value, 10)
+                            : undefined;
+                          field.onChange(value);
+                        }}
+                        onBlur={() => {
+                          if (!field.value) {
+                            field.onChange(1);
+                          }
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -134,22 +128,23 @@ export const ShredRequestForm = () => {
               />
               <FormField
                 control={form.control}
-                name="shredLocation"
+                name="documentType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Shred Location</FormLabel>
+                    <FormLabel>Document Type</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a shred location" />
+                          <SelectValue placeholder="Select a document type" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="ON_SITE">On-site</SelectItem>
-                        <SelectItem value="OFF_SITE">Off-site</SelectItem>
+                        <SelectItem value="PAPER">Paper</SelectItem>
+                        <SelectItem value="BOOK">Book</SelectItem>
+                        <SelectItem value="PHOTO">Photo</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -158,23 +153,23 @@ export const ShredRequestForm = () => {
               />
               <FormField
                 control={form.control}
-                name="itemType"
+                name="scanResolution"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Item Type</FormLabel>
+                    <FormLabel>Scan Resolution</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select an item type" />
+                          <SelectValue placeholder="Select a scan resolution" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="PAPER">Paper</SelectItem>
-                        <SelectItem value="HARD_DRIVE">Hard Drive</SelectItem>
-                        <SelectItem value="OTHER">Other</SelectItem>
+                        <SelectItem value="LOW">Low (72 DPI)</SelectItem>
+                        <SelectItem value="MEDIUM">Medium (300 DPI)</SelectItem>
+                        <SelectItem value="HIGH">High (600 DPI)</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -182,27 +177,6 @@ export const ShredRequestForm = () => {
                 )}
               />
             </div>
-            <FormField
-              control={form.control}
-              name="certificateRequired"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Certificate of Destruction Required</FormLabel>
-                    <p className="text-sm text-muted-foreground">
-                      Check this if you need a certificate of destruction after
-                      shredding.
-                    </p>
-                  </div>
-                </FormItem>
-              )}
-            />
             <FormField
               control={form.control}
               name="remarks"
@@ -217,7 +191,7 @@ export const ShredRequestForm = () => {
               )}
             />
             <Button type="submit" className="w-full">
-              Submit Shredding Request
+              Submit Scanning Request
             </Button>
           </form>
         </Form>

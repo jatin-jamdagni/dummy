@@ -2,10 +2,10 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -23,34 +23,25 @@ import {
 } from "@/components/ui/select";
 import { DateTimePicker } from "@/components/date-picker";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { ShredFormValues, shredSchema } from "@/schemas";
+import { CustomPhoneInput } from "@/components/ui/phone-input";
 
-const scanningSchema = z.object({
-  date: z.date(),
-  time: z.string(),
-  contactPerson: z.string().min(2, "Contact person is required"),
-  documentType: z.enum(["PAPER", "BOOK", "PHOTO"]),
-  pageCount: z.number().min(1, "At least one page is required"),
-  scanResolution: z.enum(["LOW", "MEDIUM", "HIGH"]),
-  remarks: z.string().optional(),
-});
-
-type ScanningFormValues = z.infer<typeof scanningSchema>;
-
-export const ScanningRequestForm = () => {
-  const form = useForm<ScanningFormValues>({
-    resolver: zodResolver(scanningSchema),
+export const ShredRequestForm = () => {
+  const form = useForm<ShredFormValues>({
+    resolver: zodResolver(shredSchema),
     defaultValues: {
       date: new Date(),
-      time: "",
       contactPerson: "",
-      documentType: "PAPER",
-      pageCount: 1,
-      scanResolution: "MEDIUM",
+      contactNo: "",
+      shredLocation: "OFF_SITE",
+      itemCount: 1,
+      itemType: "PAPER",
+      certificateRequired: false,
       remarks: "",
     },
   });
 
-  function onSubmit(data: ScanningFormValues) {
+  function onSubmit(data: ShredFormValues) {
     console.log(data);
     // Here you would typically send the data to your backend
   }
@@ -58,9 +49,7 @@ export const ScanningRequestForm = () => {
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold">
-          Scanning Request Form
-        </CardTitle>
+        <CardTitle className="text-2xl font-bold">Shred Request Form</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -71,28 +60,11 @@ export const ScanningRequestForm = () => {
                 name="date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Scanning Date</FormLabel>
+                    <FormLabel>Shredding Date</FormLabel>
                     <FormControl>
                       <DateTimePicker
                         date={field.value}
                         onDateChange={(newDate) => field.onChange(newDate)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="time"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Scanning Time</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="time"
-                        {...field}
-                        className="w-full md:w-40"
                       />
                     </FormControl>
                     <FormMessage />
@@ -106,7 +78,7 @@ export const ScanningRequestForm = () => {
                   <FormItem>
                     <FormLabel>Contact Person</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input placeholder="Contact person" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -114,17 +86,39 @@ export const ScanningRequestForm = () => {
               />
               <FormField
                 control={form.control}
-                name="pageCount"
+                name="contactNo"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Number of Pages</FormLabel>
+                    <FormLabel>Contact No</FormLabel>
+                    <FormControl>
+                      <CustomPhoneInput {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="itemCount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Number of Items</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
+                        min={1}
                         {...field}
-                        onChange={(e) =>
-                          field.onChange(parseInt(e.target.value))
-                        }
+                        onChange={(e) => {
+                          const value = e.target.value
+                            ? parseInt(e.target.value, 10)
+                            : undefined;
+                          field.onChange(value);
+                        }}
+                        onBlur={() => {
+                          if (!field.value) {
+                            field.onChange(1);
+                          }
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -133,23 +127,22 @@ export const ScanningRequestForm = () => {
               />
               <FormField
                 control={form.control}
-                name="documentType"
+                name="shredLocation"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Document Type</FormLabel>
+                    <FormLabel>Shred Location</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a document type" />
+                          <SelectValue placeholder="Select a shred location" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="PAPER">Paper</SelectItem>
-                        <SelectItem value="BOOK">Book</SelectItem>
-                        <SelectItem value="PHOTO">Photo</SelectItem>
+                        <SelectItem value="ON_SITE">On-site</SelectItem>
+                        <SelectItem value="OFF_SITE">Off-site</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -158,23 +151,23 @@ export const ScanningRequestForm = () => {
               />
               <FormField
                 control={form.control}
-                name="scanResolution"
+                name="itemType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Scan Resolution</FormLabel>
+                    <FormLabel>Item Type</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a scan resolution" />
+                          <SelectValue placeholder="Select an item type" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="LOW">Low (72 DPI)</SelectItem>
-                        <SelectItem value="MEDIUM">Medium (300 DPI)</SelectItem>
-                        <SelectItem value="HIGH">High (600 DPI)</SelectItem>
+                        <SelectItem value="PAPER">Paper</SelectItem>
+                        <SelectItem value="HARD_DRIVE">Hard Drive</SelectItem>
+                        <SelectItem value="OTHER">Other</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -182,6 +175,27 @@ export const ScanningRequestForm = () => {
                 )}
               />
             </div>
+            <FormField
+              control={form.control}
+              name="certificateRequired"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Certificate of Destruction Required</FormLabel>
+                    <p className="text-sm text-muted-foreground">
+                      Check this if you need a certificate of destruction after
+                      shredding.
+                    </p>
+                  </div>
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="remarks"
@@ -196,7 +210,7 @@ export const ScanningRequestForm = () => {
               )}
             />
             <Button type="submit" className="w-full">
-              Submit Scanning Request
+              Submit Shredding Request
             </Button>
           </form>
         </Form>
